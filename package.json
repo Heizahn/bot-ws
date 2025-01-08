@@ -1,0 +1,16 @@
+{
+	"name": "bot-ws",
+	"version": "1.0.0",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node --watch main.js",
+		"start": "node main.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"@wppconnect-team/wppconnect": "https://github.com/wppconnect-team/wppconnect/releases/download/nightly/wppconnect-nightly.tgz"
+	}
+}
