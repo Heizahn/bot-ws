@@ -1,9 +1,7 @@
 const wppconnet = require('@wppconnect-team/wppconnect');
 
 wppconnet
-	.create({
-		logQR: false,
-	})
+	.create()
 	.then((client) => bot(client))
 	.catch(console.error);
 
@@ -25,7 +23,7 @@ async function bot(client) {
 			const sms = String(message.body).toLowerCase();
 
 			if (sms === '/deuda') {
-				if ((clientDB.saldo = 0)) {
+				if (Number(clientDB.saldo) == 0) {
 					client.sendText(
 						message.from,
 						`${clientDB.nombre} no posea una deuda actualmente`,
