@@ -22,7 +22,7 @@ async function bot(client) {
 		if (message.from === clientDB.telefonos.replace('0', '58') + '@c.us') {
 			const sms = String(message.body).toLowerCase();
 
-			if (sms === '/deuda') {
+			if (sms === '/saldo') {
 				if (Number(clientDB.saldo) == 0) {
 					client.sendText(
 						message.from,
@@ -41,11 +41,11 @@ async function bot(client) {
 				}
 			}
 
-			if (sms.includes('/abono')) {
+			if (sms.includes('/importe')) {
 				const abono = sms.split(' ')[sms.split(' ').length - 1];
 
-				if (abono === '/abono') {
-					client.sendText(message.from, 'El formato es "/abono <cantidad>"');
+				if (abono === '/importe') {
+					client.sendText(message.from, 'El formato es "/importe <cantidad>"');
 				} else {
 					if (abono <= 0) {
 						client.sendText(
