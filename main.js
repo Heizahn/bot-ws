@@ -31,17 +31,19 @@ async function bot(client) {
 				} else if (Number(clientDB.saldo) > 0) {
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} posee un saldo positivo de ${clientDB.saldo} REF`,
+						`${clientDB.nombre} posee un saldo positivo de ${clientDB.saldo}REF`,
 					);
 				} else {
 					const res = await fetch(
-						`http://172.17.0.126:8080/convert?amount=${clientDB.saldo}`,
+						`http://172.17.0.126:8080/convert?amount=${Math.abs(clientDB.saldo)}`,
 					);
 					const { conversion } = await res.json();
 
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} tiene un saldo pendiente de ${clientDB.saldo}\nSu deuda en Bs seria ${conversion}Bs\n\n${pagoMovil}`,
+						`${clientDB.nombre} tiene un saldo pendiente de ${Math.abs(
+							clientDB.saldo,
+						)}REF\nSu deuda en Bs seria ${conversion}Bs\n\n${pagoMovil}`,
 					);
 				}
 			}
