@@ -26,7 +26,12 @@ async function bot(client) {
 				if (Number(clientDB.saldo) == 0) {
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} no posea una deuda actualmente`,
+						`${clientDB.nombre} su servicio se encuentra solvente`,
+					);
+				} else if (Number(clientDB.saldo) > 0) {
+					client.sendText(
+						message.from,
+						`${clientDB.nombre} posee un saldo positivo de ${clientDB.saldo} REF`,
 					);
 				} else {
 					const res = await fetch(
@@ -36,7 +41,7 @@ async function bot(client) {
 
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} tiene ${conversion} Bs de deuda\n\n${pagoMovil}\n`,
+						`${clientDB.nombre} tiene un saldo pendiente de ${clientDB.saldo}\nSu deuda en Bs seria ${conversion}Bs\n\n${pagoMovil}`,
 					);
 				}
 			}
