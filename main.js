@@ -38,7 +38,7 @@ async function bot(client) {
 
 					const { conversion } = await resFetch.json();
 
-					res += `Servicio ${service.nombre}\nPosee una deuda de ${Math.abs(
+					res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${Math.abs(
 						Number(service.saldo),
 					)}REF\nEn Bolivares son ${conversion}Bs\n\n${pagoMovil}\n\n`;
 				}
