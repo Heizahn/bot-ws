@@ -40,7 +40,7 @@ async function bot(client) {
 
 					res += `Servicio ${service.nombre}\nPosee una deuda de ${Math.abs(
 						Number(service.saldo),
-					)}REF\nEn Bolivares son ${conversion}Bs\n${pagoMovil}\n\n`;
+					)}REF\nEn Bolivares son ${conversion}Bs\n\n${pagoMovil}\n\n`;
 				}
 			}
 
@@ -69,7 +69,7 @@ async function bot(client) {
 					const { conversion } = await res.json();
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} el monto a pagar es: ${conversion} Bs\n\n${pagoMovil}\n`,
+						`${clientDB[0].nombre} el monto a pagar es: ${conversion}Bs\n\n${pagoMovil}\n`,
 					);
 				}
 			}
