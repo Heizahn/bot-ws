@@ -13,68 +13,70 @@ async function bot(client) {
 
 		const clientDB = clients.filter(
 			(c) => message.from === c.telefonos.replace('0', '58') + '@c.us',
-		)[0];
+		);
 
-		if (!clientDB) {
+		if (clientDB.length === 0) {
 			return;
 		}
 
-		if (message.from === clientDB.telefonos.replace('0', '58') + '@c.us') {
-			const sms = String(message.body).toLowerCase();
+		const sms = String(message.body).toLowerCase();
 
-			if (sms === '/saldo') {
-				if (Number(clientDB.saldo) == 0) {
-					client.sendText(
-						message.from,
-						`${clientDB.nombre} su servicio se encuentra solvente`,
+		if (sms === '/saldo') {
+			let res = '';
+
+			for (let service of clientDB) {
+				if (Number(service.saldo) > 0) {
+					res += `Servicio ${service.nombre}\nPosee un saldo positivo de ${service.saldo}REF\n\n`;
+				} else if (Number(service.saldo) === 0) {
+					res += `Servicio ${service.nombre}\nActualmente esta solvente\n\n`;
+				} else {
+					const resFetch = await fetch(
+						`http://172.17.0.126:8080/convert?amount=${Math.abs(
+							Number(service.saldo),
+						)}`,
 					);
-				} else if (Number(clientDB.saldo) > 0) {
+
+					const { conversion } = await resFetch.json();
+
+					res += `Servicio ${service.nombre}\nPosee una deuda de ${Math.abs(
+						Number(service.saldo),
+					)}REF\nEn Bolivares son ${conversion}Bs\n${pagoMovil}\n\n`;
+				}
+			}
+
+			if (res.endsWith('\n\n')) {
+				res = res.slice(0, -2);
+			}
+
+			client.sendText(message.from, res);
+		}
+
+		if (sms.includes('/abono')) {
+			const abono = sms.split(' ')[sms.split(' ').length - 1];
+
+			if (abono === '/abono') {
+				client.sendText(message.from, 'El formato es "/abono <cantidad>"');
+			} else {
+				if (abono <= 0) {
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} posee un saldo positivo de ${clientDB.saldo}REF`,
+						'El monto no puede ser negativo o CERO, por favor intente nuevamente',
 					);
 				} else {
 					const res = await fetch(
-						`http://172.17.0.126:8080/convert?amount=${Math.abs(clientDB.saldo)}`,
+						`http://172.17.0.126:8080/convert?amount=${abono}`,
 					);
 					const { conversion } = await res.json();
-
 					client.sendText(
 						message.from,
-						`${clientDB.nombre} tiene un saldo pendiente de ${Math.abs(
-							clientDB.saldo,
-						)}REF\nSu deuda en Bs seria ${conversion}Bs\n\n${pagoMovil}`,
+						`${clientDB.nombre} el monto a pagar es: ${conversion} Bs\n\n${pagoMovil}\n`,
 					);
 				}
 			}
+		}
 
-			if (sms.includes('/importe')) {
-				const abono = sms.split(' ')[sms.split(' ').length - 1];
-
-				if (abono === '/importe') {
-					client.sendText(message.from, 'El formato es "/importe <cantidad>"');
-				} else {
-					if (abono <= 0) {
-						client.sendText(
-							message.from,
-							'El monto no puede ser negativo o CERO, por favor intente nuevamente',
-						);
-					} else {
-						const res = await fetch(
-							`http://172.17.0.126:8080/convert?amount=${abono}`,
-						);
-						const { conversion } = await res.json();
-						client.sendText(
-							message.from,
-							`${clientDB.nombre} el monto a pagar es: ${conversion} Bs\n\n${pagoMovil}\n`,
-						);
-					}
-				}
-			}
-
-			if (sms === '/datos') {
-				client.sendText(message.from, pagoMovil);
-			}
+		if (sms === '/datos') {
+			client.sendText(message.from, pagoMovil);
 		}
 	});
 }
