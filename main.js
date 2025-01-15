@@ -69,7 +69,7 @@ async function bot(client) {
 					const { conversion } = await res.json();
 					client.sendText(
 						message.from,
-						`${clientDB[0].nombre} el monto a pagar es: ${conversion}Bs\n\n${pagoMovil}\n`,
+						`${clientDB[0].nombre} el monto a pagar es: ${conversion}Bs\n\n${pagoMovil}`,
 					);
 				}
 			}
