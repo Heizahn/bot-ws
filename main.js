@@ -1,4 +1,5 @@
 const wppconnet = require('@wppconnect-team/wppconnect');
+const { saldo, datos, abono } = require('./regex');
 
 wppconnet
 	.create()
@@ -21,62 +22,92 @@ async function bot(client) {
 
 		const sms = String(message.body).toLowerCase();
 
-		if (sms === '/saldo') {
+		if (saldo(sms)) {
 			let res = '';
+			let needPM = false;
+			const conversionCache = {};
 
 			for (let service of clientDB) {
-				if (Number(service.saldo) > 0) {
+				const saldo = Number(service.saldo);
+
+				if (saldo > 0) {
 					res += `Servicio ${service.nombre}\nPosee un saldo positivo de ${service.saldo}REF\n\n`;
-				} else if (Number(service.saldo) === 0) {
+				} else if (saldo === 0) {
 					res += `Servicio ${service.nombre}\nActualmente esta solvente\n\n`;
 				} else {
-					const resFetch = await fetch(
-						`http://172.17.0.126:8080/convert?amount=${Math.abs(
-							Number(service.saldo),
-						)}`,
-					);
+					const absSaldo = Math.abs(saldo);
 
-					const { conversion } = await resFetch.json();
+					if (!conversionCache[absSaldo]) {
+						let success = false;
+						let retries = 3;
 
-					res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${Math.abs(
-						Number(service.saldo),
-					)}REF\nEn Bolivares son ${conversion}Bs\n\n${pagoMovil}\n\n`;
+						while (!success && retries > 0) {
+							try {
+								const resFetch = await fetch(
+									`http://172.17.0.126:8080/convert?amount=${absSaldo}`,
+								);
+
+								const { conversion } = await resFetch.json();
+
+								conversionCache[absSaldo] = conversion;
+								success = true;
+							} catch (err) {
+								retries--;
+							}
+						}
+
+						if (!success) {
+							conversionCache[absSaldo] = 'No disponible';
+						}
+					}
+
+					const conversion = conversionCache[absSaldo];
+
+					if (conversion === 'No disponible') {
+						res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${absSaldo}REF\nNo pudimos calcular la conversión a Bolívares en este momento. Intente más tarde.\n\n`;
+					} else {
+						res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${absSaldo}REF\nEn Bolívares son ${conversion}Bs\n\n`;
+						needPM = true;
+					}
 				}
 			}
 
 			if (res.endsWith('\n\n')) {
-				res = res.slice(0, -2);
+				if (needPM) {
+					res += pagoMovil;
+					needPM;
+				} else {
+					res = res.slice(0, -2);
+				}
 			}
 
 			client.sendText(message.from, res);
 		}
 
-		if (sms.includes('/abono')) {
-			const abono = sms.split(' ')[sms.split(' ').length - 1];
-
-			if (abono === '/abono') {
-				client.sendText(message.from, 'El formato es "/abono <cantidad>"');
-			} else {
-				if (abono <= 0) {
-					client.sendText(
-						message.from,
-						'El monto no puede ser negativo o CERO, por favor intente nuevamente',
-					);
-				} else {
-					const res = await fetch(
-						`http://172.17.0.126:8080/convert?amount=${abono}`,
-					);
-					const { conversion } = await res.json();
-					client.sendText(
-						message.from,
-						`${clientDB[0].nombre} el monto a pagar es: ${conversion}Bs\n\n${pagoMovil}`,
-					);
-				}
-			}
+		if (datos(sms)) {
+			client.sendText(message.from, pagoMovil);
 		}
 
-		if (sms === '/datos') {
-			client.sendText(message.from, pagoMovil);
+		if (sms.startsWith('abono')) {
+			const monto = abono(sms);
+
+			let res = '';
+
+			if (monto === null) {
+				res = `Para abonar, usa el formato: "abono [monto]".\n\nEjemplo: "abono 10"\nSin las comillas`;
+			} else if (monto === 0) {
+				res = '¿Abonar 0?\nIntenta con un monto mayor a 0.';
+			} else if (monto < 0) {
+				res = 'No se aceptan abonos negativos, Por favor, ingrese un monto valido';
+			} else {
+				const resCon = await fetch(`http://172.17.0.126:8080/convert?amount=${monto}`);
+
+				const { conversion } = await resCon.json();
+
+				res = `El monto ${monto} a pagar en bolivares son: ${conversion}Bs\n\n${pagoMovil}`;
+			}
+
+			client.sendText(message.from, res);
 		}
 	});
 }
