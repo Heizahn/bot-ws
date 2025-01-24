@@ -1,6 +1,11 @@
 const wppconnet = require('@wppconnect-team/wppconnect');
 const { saldo, datos, abono } = require('./regex');
+const multer = require('multer');
+const path = require('path');
 
+const upload = multer({
+	dest: path.join(__dirname, 'uploads'),
+});
 wppconnet
 	.create()
 	.then((client) => bot(client))
@@ -9,6 +14,13 @@ wppconnet
 const pagoMovil = 'Nuestros Datos\nBanco: BNC\nTelefono: 04122354797\nRif: J411898147';
 
 async function bot(client) {
+	const express = require('express');
+	const server = express();
+
+	// Middleware para manejar JSON y formularios
+	server.use(express.json());
+	server.use(express.urlencoded({ extended: true }));
+
 	await client.onMessage(async (message) => {
 		const clients = await require('./clients').clients();
 
@@ -109,5 +121,45 @@ async function bot(client) {
 
 			client.sendText(message.from, res);
 		}
+	});
+
+	server.post('/send-pdf', upload.single('file'), async (req, res) => {
+		try {
+			const { file } = req;
+
+			if (!file) {
+				return res.status(400).send({ error: 'No se recibió ningún archivo.' });
+			}
+
+			// Aquí puedes enviar el archivo a un usuario de WhatsApp, por ejemplo:
+			const recipient = req.body.recipient.replace('0', '58'); // Número de teléfono del destinatario en el cuerpo de la solicitud
+			const message = req.body.message || 'Recibo de pago'; // Mensaje opcional
+
+			if (!recipient) {
+				return res.status(400).send({ error: 'Número de teléfono no proporcionado.' });
+			}
+
+			// Enviar el archivo al usuario usando WPPConnect
+			await client.sendFile(
+				`${recipient}@c.us`, // El número de WhatsApp del destinatario
+				file.path, // Ruta temporal del archivo
+				file.originalname, // Nombre del archivo
+				message, // Mensaje opcional
+			);
+
+			// Responder al backend llamante
+			res.status(200).send({ message: 'PDF enviado exitosamente.' });
+
+			// Elimina el archivo temporalmente almacenado si es necesario
+			const fs = require('fs');
+			fs.unlinkSync(file.path);
+		} catch (error) {
+			console.error('Error al procesar el archivo:', error);
+			res.status(500).send({ error: 'Ocurrió un error al procesar el archivo.' });
+		}
+	});
+
+	server.listen(8020, () => {
+		console.log('Servidor iniciado en http://localhost:8081');
 	});
 }
