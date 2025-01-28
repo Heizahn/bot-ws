@@ -1,11 +1,12 @@
 const wppconnet = require('@wppconnect-team/wppconnect');
 const { saldo, datos, abono } = require('./regex');
-const multer = require('multer');
-const path = require('path');
 
-const upload = multer({
-	dest: path.join(__dirname, 'uploads'),
-});
+require('dotenv').config();
+
+const fs = require('fs');
+const generatePdf = require('./generatePdf/generatePdf');
+// const { Invoice, connectDB } = require('./db');
+
 wppconnet
 	.create()
 	.then((client) => bot(client))
@@ -123,43 +124,48 @@ async function bot(client) {
 		}
 	});
 
-	server.post('/send-pdf', upload.single('file'), async (req, res) => {
+	server.post('/send-pdf', async (req, res) => {
 		try {
-			const { file } = req;
+			const { tlf, referencia, ...data } = req.body;
 
-			if (!file) {
-				return res.status(400).send({ error: 'No se recibió ningún archivo.' });
+			if (!referencia) {
+				return res.status(400).json({ error: 'Campo referencia es requerido' });
 			}
 
-			// Aquí puedes enviar el archivo a un usuario de WhatsApp, por ejemplo:
-			const recipient = req.body.recipient.replace('0', '58'); // Número de teléfono del destinatario en el cuerpo de la solicitud
-			const message = req.body.message || 'Recibo de pago'; // Mensaje opcional
+			// Resto del código para generar y enviar PDF...
+			const pathPdf = await generatePdf({
+				...data,
+				numero: referencia.slice(0, 5),
+				identificacion: data.identificacion || 'N/A',
+				fecha: data.fecha,
+			});
 
-			if (!recipient) {
-				return res.status(400).send({ error: 'Número de teléfono no proporcionado.' });
+			// Enviar archivo con validación
+			if (!fs.existsSync(pathPdf)) {
+				throw new Error('El archivo PDF no se generó correctamente');
 			}
 
-			// Enviar el archivo al usuario usando WPPConnect
 			await client.sendFile(
-				`${recipient}@c.us`, // El número de WhatsApp del destinatario
-				file.path, // Ruta temporal del archivo
-				file.originalname, // Nombre del archivo
-				message, // Mensaje opcional
+				`${tlf.replace('0', '58')}@c.us`,
+				pathPdf,
+				`Recibo de Pago ${data.identificacion} ${data.fecha.replace(/\//g, '-')}.pdf`,
+				'Recibo de pago',
 			);
 
-			// Responder al backend llamante
-			res.status(200).send({ message: 'PDF enviado exitosamente.' });
-
-			// Elimina el archivo temporalmente almacenado si es necesario
-			const fs = require('fs');
-			fs.unlinkSync(file.path);
+			res.status(200).json({
+				success: true,
+			});
 		} catch (error) {
-			console.error('Error al procesar el archivo:', error);
-			res.status(500).send({ error: 'Ocurrió un error al procesar el archivo.' });
+			if (error.code === 11000) {
+				return res.status(400).json({ error: 'La referencia ya existe' });
+			}
+			console.error('Error:', error);
+			res.status(500).json({ error: error.message });
 		}
 	});
 
-	server.listen(8020, () => {
-		console.log('Servidor iniciado en http://localhost:8081');
+	console.log('Conectado a la base de datos');
+	server.listen(process.env.PORT, () => {
+		console.log('Servidor iniciado');
 	});
 }
