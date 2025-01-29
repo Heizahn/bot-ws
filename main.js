@@ -39,6 +39,8 @@ async function bot(client) {
 			let res = '';
 			let needPM = false;
 			const conversionCache = {};
+			let total = 0;
+			let control = 0;
 
 			for (let service of clientDB) {
 				const saldo = Number(service.saldo);
@@ -79,7 +81,9 @@ async function bot(client) {
 					if (conversion === 'No disponible') {
 						res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${absSaldo}REF\nNo pudimos calcular la conversión a Bolívares en este momento. Intente más tarde.\n\n`;
 					} else {
-						res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${absSaldo}REF\nEn Bolívares son ${conversion}Bs\n\n`;
+						res += `Servicio ${service.nombre}\nPosee un saldo pendiente de ${absSaldo}REF\nBolívares: ${conversion}Bs\n\n`;
+						total += conversion;
+						control++;
 						needPM = true;
 					}
 				}
@@ -87,7 +91,11 @@ async function bot(client) {
 
 			if (res.endsWith('\n\n')) {
 				if (needPM) {
-					res += pagoMovil;
+					res += `${
+						clientDB.length > 1 && control > 1
+							? `Total: ${total.toFixed(2)}Bs\n\n`
+							: ''
+					}${pagoMovil}`;
 					needPM;
 				} else {
 					res = res.slice(0, -2);
@@ -152,6 +160,9 @@ async function bot(client) {
 				'Recibo de pago',
 			);
 
+			// eliminar archivo PDF
+			fs.unlinkSync(pathPdf);
+
 			res.status(200).json({
 				success: true,
 			});
@@ -164,7 +175,6 @@ async function bot(client) {
 		}
 	});
 
-	console.log('Conectado a la base de datos');
 	server.listen(process.env.PORT, () => {
 		console.log('Servidor iniciado');
 	});
