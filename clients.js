@@ -7,13 +7,14 @@ module.exports = {
 			throw new Error('No se ha definido el host de los clientes');
 		}
 
-		const [resOne, resTwo] = Promise.all([
+		const [resOne, resTwo] = await Promise.all([
 			fetch(`${host}/clients-for-bot`),
 			fetch(`${hostG}/clients-for-bot`),
 		]);
 
 		const dataOne = await resOne.json();
 		const dataTwo = await resTwo.json();
+
 		return [...dataOne, ...dataTwo];
 	},
 };
