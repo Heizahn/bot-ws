@@ -1,11 +1,10 @@
 const wppconnet = require('@wppconnect-team/wppconnect');
 const { saldo, datos, abono } = require('./regex');
+const { db } = require('./config/db');
 
 require('dotenv').config();
 
-const fs = require('fs');
-const generatePdf = require('./generatePdf/generatePdf');
-// const { Invoice, connectDB } = require('./db');
+const { sendPdf } = require('./controllers/send-pdf.controller');
 
 wppconnet
 	.create()
@@ -132,50 +131,14 @@ async function bot(client) {
 		}
 	});
 
-	server.post('/send-pdf', async (req, res) => {
-		try {
-			const { tlf, referencia, ...data } = req.body;
+	server.post('/send-pdf', (req, res) => sendPdf(req, res, client));
 
-			if (!referencia) {
-				return res.status(400).json({ error: 'Campo referencia es requerido' });
-			}
-
-			// Resto del código para generar y enviar PDF...
-			const pathPdf = await generatePdf({
-				...data,
-				numero: referencia.slice(0, 5),
-				identificacion: data.identificacion || 'N/A',
-				fecha: data.fecha,
-			});
-
-			// Enviar archivo con validación
-			if (!fs.existsSync(pathPdf)) {
-				throw new Error('El archivo PDF no se generó correctamente');
-			}
-
-			await client.sendFile(
-				`${tlf.replace('0', '58')}@c.us`,
-				pathPdf,
-				`Recibo de Pago ${data.identificacion} ${data.fecha.replace(/\//g, '-')}.pdf`,
-				'Recibo de pago',
-			);
-
-			// eliminar archivo PDF
-			fs.unlinkSync(pathPdf);
-
-			res.status(200).json({
-				success: true,
-			});
-		} catch (error) {
-			if (error.code === 11000) {
-				return res.status(400).json({ error: 'La referencia ya existe' });
-			}
-			console.error('Error:', error);
-			res.status(500).json({ error: error.message });
-		}
-	});
-
-	server.listen(process.env.PORT, () => {
-		console.log('Servidor iniciado');
+	//Iniciar la base de datos
+	db.initialize().then(() => {
+		console.log('Base de datos iniciada');
+		// Iniciar el servidor
+		server.listen(process.env.PORT, () => {
+			console.log('Servidor iniciado');
+		});
 	});
 }
