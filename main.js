@@ -22,11 +22,17 @@ async function bot(client) {
 	server.use(express.urlencoded({ extended: true }));
 
 	await client.onMessage(async (message) => {
+		console.log(message.from);
 		const clients = await require('./clients').clients();
 
-		const clientDB = clients.filter(
-			(c) => message.from === c.telefonos.replace('0', '58') + '@c.us',
-		);
+		const clientDB = clients.filter((c) => {
+			// TODO: Revisar si el telefonos tiene el 0 o no
+			if (c.telefonos.startsWith('0')) {
+				return message.from === c.telefonos.replace('0', '58') + '@c.us';
+			} else {
+				return message.from === c.telefonos + '@c.us';
+			}
+		});
 
 		if (clientDB.length === 0) {
 			return;
