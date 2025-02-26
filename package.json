@@ -3,20 +3,29 @@
 	"version": "1.0.0",
 	"main": "main.js",
 	"scripts": {
-		"dev": "node --watch main.js",
-		"start": "node main.js"
+		"dev": "nodemon src/main.ts",
+		"start": "node dist/main.js",
+		"build": "tsc"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
-		"@wppconnect-team/wppconnect": "https://github.com/wppconnect-team/wppconnect/releases/download/nightly/wppconnect-nightly.tgz",
+		"@wppconnect-team/wppconnect": "^1.35.2",
 		"dotenv": "^16.4.7",
 		"express": "^4.21.2",
 		"handlebars": "^4.7.8",
 		"pg": "^8.13.1",
 		"puppeteer": "^24.1.1",
 		"typeorm": "^0.3.20"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.0",
+		"@types/node": "^22.13.5",
+		"@types/pg": "^8.11.11",
+		"nodemon": "^3.1.9",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.7.3"
 	}
 }
