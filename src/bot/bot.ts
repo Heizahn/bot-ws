@@ -12,7 +12,7 @@ export async function bot(client: Bot["client"]) {
         const clients = (await import("../clients")).default();
 
         const clientDB = (await clients).filter((c: ClientDB) => {
-            return formatPhoneNumber(c.telefonos);
+            return formatPhoneNumber(c.telefonos) === message.from;
         });
 
         if (clientDB.length === 0) {
