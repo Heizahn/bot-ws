@@ -4,7 +4,7 @@ import db from "../config/db";
 import { Invoice } from "../entities/invoice";
 import { Request, Response } from "express";
 import { Bot } from "../interfaces/interface";
-import sendMail from "../services/send-mail";
+import { formatPhoneNumber } from "../utils/functions";
 
 export default async function sendPdf(
     req: Request,
@@ -12,7 +12,7 @@ export default async function sendPdf(
     client: Bot["client"]
 ) {
     try {
-        const { tlf, referencia, mail, ...data } = req.body;
+        const { tlf, referencia, ...data } = req.body;
 
         if (!referencia) {
             return res
@@ -53,15 +53,8 @@ export default async function sendPdf(
             throw new Error("El archivo PDF no se generó correctamente");
         }
 
-        await client.sendFile(
-            `${tlf.replace("0", "58")}@c.us`,
-            pathPdf,
-            `Recibo de Pago ${data.identificacion} ${data.fecha.replace(
-                /\//g,
-                "-"
-            )}.pdf`,
-            "Recibo de pago"
-        );
+        const formattedPhoneNumber = formatPhoneNumber(tlf);
+        await client.sendFile(formattedPhoneNumber, pathPdf);
 
         fs.unlinkSync(pathPdf);
 
