@@ -1,17 +1,17 @@
 export const saldoRegex = (sms: string) => {
-	const regex = /^\s*saldo\s*$/i;
+	const regex = /^\s*s[aáAÁ]ld[oóOÓ]\s*$/i;
 
 	return regex.test(sms);
 };
 
 export const datosRegex = (sms: string) => {
-	const regex = /^\s*datos\s*$/i;
+	const regex = /^\s*d[aáAÁ]t[oóOÓ]s\s*$/i;
 
 	return regex.test(sms);
 };
 
 export const abonoRegex = (sms: string) => {
-	const regexAbono = /^\s*abono\s*(-?\d+)?\s*$/i;
+	const regexAbono = /^\s*[aáAÁ]b[oóOÓ]n[oóOÓ]\s*(-?\d+)?\s*$/i;
 	const match = sms.match(regexAbono);
 
 	if (match) {
