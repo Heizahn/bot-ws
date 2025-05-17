@@ -8,6 +8,9 @@ const server = (await import('./config/server')).default;
 try {
 	const client = await wppconnect.create({
 		session: 'session',
+		puppeteerOptions: {
+			headless: 'shell',
+		},
 	});
 
 	bot(client);
