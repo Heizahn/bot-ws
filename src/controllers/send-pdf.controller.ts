@@ -7,7 +7,7 @@ export default async function sendPdf(req: Request, res: Response, client: Bot['
 	let pdfPath: string | null = null;
 
 	try {
-		const { pdfBase64, fileName, tlf, startTime } = req.body;
+		const { pdfBase64, fileName, tlf } = req.body;
 
 		// Validación más estricta del base64
 		if (!pdfBase64 || typeof pdfBase64 !== 'string' || pdfBase64.trim() === '') {
@@ -34,9 +34,6 @@ export default async function sendPdf(req: Request, res: Response, client: Bot['
 			});
 		}
 
-		const generationTime = (Date.now() - startTime) / 1000;
-
-		console.log(`PDF Enviado exitosamente en ${generationTime.toFixed(2)} segundos`);
 		res.status(200).json({
 			success: true,
 			message: `PDF Enviado exitosamente`,
