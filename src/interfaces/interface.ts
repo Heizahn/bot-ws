@@ -1,17 +1,18 @@
-import { Whatsapp } from "@wppconnect-team/wppconnect";
+import { Whatsapp } from '@wppconnect-team/wppconnect';
 
 export interface Bot {
-    client: Whatsapp;
+	client: Whatsapp;
 }
 
 export interface ClientDB {
-    nombre: string;
-    saldo: number;
-    telefonos: string;
-    estado: string;
+	sName: string;
+	nBalance: number;
+	sPhone: string;
+	sState: string;
+	owner: number;
 }
 
 export interface IText {
-    body: string;
-    tlf: string;
+	body: string;
+	tlf: string;
 }

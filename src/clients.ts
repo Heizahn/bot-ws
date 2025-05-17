@@ -1,19 +1,14 @@
 import 'dotenv/config';
 
 export default async function clients() {
-	const host = process.env.HOST_CLIENT;
-	const hostG = process.env.HOST_CLIENT_G;
-	if (!host || !hostG) {
+	const host = process.env.API_URL;
+	if (!host) {
 		throw new Error('No se ha definido el host de los clientes');
 	}
 
-	const [resOne, resTwo] = await Promise.all([
-		fetch(`${host}/clients-for-bot`),
-		fetch(`${hostG}/clients-for-bot`),
-	]);
+	const res = await fetch(`${host}/clients/bot`);
 
-	const dataOne = await resOne.json();
-	const dataTwo = await resTwo.json();
+	const data = await res.json();
 
-	return [...dataOne, ...dataTwo];
+	return data;
 }

@@ -1,35 +1,25 @@
 {
-    "name": "bot-ws",
-    "version": "1.0.0",
-    "main": "main.js",
-    "scripts": {
-        "dev": "nodemon src/main.ts",
-        "start": "node dist/main.js",
-        "build": "tsc && npm run copy-files",
-        "copy-files": "copyfiles -u 1 src/generatePdf/invoice-template.html src/generatePdf/logo-removebg-preview.png dist"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": "",
-    "dependencies": {
-        "@wppconnect-team/wppconnect": "^1.35.2",
-        "dotenv": "^16.4.7",
-        "express": "^4.21.2",
-        "handlebars": "^4.7.8",
-        "nodemailer": "^6.10.0",
-        "pg": "^8.13.1",
-        "puppeteer": "^24.1.1",
-        "typeorm": "^0.3.20"
-    },
-    "devDependencies": {
-        "@types/express": "^5.0.0",
-        "@types/node": "^22.13.5",
-        "@types/nodemailer": "^6.4.17",
-        "@types/pg": "^8.11.11",
-        "copyfiles": "^2.4.1",
-        "nodemon": "^3.1.9",
-        "ts-node": "^10.9.2",
-        "typescript": "^5.7.3"
-    }
+	"name": "bot-ws",
+	"version": "1.0.0",
+	"module": "src/main.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/main.ts",
+		"start": "bun src/main.ts",
+		"typecheck": "bun typecheck"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"@wppconnect-team/wppconnect": "latest",
+		"dotenv": "latest",
+		"express": "latest",
+		"handlebars": "latest",
+		"puppeteer": "21.5.0"
+	},
+	"devDependencies": {
+		"bun-types": "latest"
+	}
 }

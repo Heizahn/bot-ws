@@ -20,3 +20,20 @@ export const abonoRegex = (sms: string) => {
 
 	return null;
 };
+
+export const isOscar = (tlf: string) => {
+	const tlfOscar = process.env.TLF_OSCAR;
+
+	if (!tlfOscar) {
+		throw new Error('TLF_OSCAR no está definido');
+	}
+
+	return tlf === tlfOscar;
+};
+
+export const idRegex = (sms: string) => {
+	// Valida "id" seguido de 8 dígitos o una cédula venezolana (solo números)
+	const regex = /^\s*(?:id\s+\d{8}|[Vv]?\d{7,8})\s*$/i;
+
+	return regex.test(sms);
+};

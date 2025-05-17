@@ -1,46 +1,35 @@
-import "dotenv/config";
-import { Bot, ClientDB } from "../interfaces/interface";
-import { saldoRegex, datosRegex } from "../regex";
-import { formatPhoneNumber } from "../utils/functions";
+import 'dotenv/config';
+import { Bot, ClientDB } from '../interfaces/interface';
+import { saldoRegex, datosRegex, isOscar } from '../regex';
+import { formatPhoneNumber } from '../utils/functions';
 
-const pagoMovil =
-    "Nuestros Datos\nBanco: BNC\nTelefono: 04122354797\nRif: J411898147";
+export async function bot(client: Bot['client']) {
+	client.onMessage(async (message) => {
+		const sms = String(message.body).toLowerCase().trim();
+		if (sms.startsWith('id') && isOscar(message.from.replace('@c.us', ''))) {
+			return (await import('../bot/res-bot-id')).default(client, sms, message.from);
+		}
 
-export async function bot(client: Bot["client"]) {
-    client.onMessage(async (message) => {
-        console.log(message.from);
-        const clients = (await import("../clients")).default();
+		const clients = (await import('../clients')).default();
 
-        const clientDB = (await clients).filter((c: ClientDB) => {
-            return formatPhoneNumber(c.telefonos) === message.from;
-        });
+		const clientDB = (await clients).filter((c: ClientDB) => {
+			return formatPhoneNumber(c.sPhone) === message.from;
+		});
 
-        if (clientDB.length === 0) {
-            return;
-        }
+		if (clientDB.length === 0) {
+			return;
+		}
 
-        const sms = String(message.body).toLowerCase();
+		if (saldoRegex(sms)) {
+			(await import('../bot/res-bot-saldo')).default(client, message, clientDB);
+		}
 
-        if (saldoRegex(sms)) {
-            (await import("../bot/res-bot-saldo")).default(
-                client,
-                message,
-                clientDB,
-                pagoMovil
-            );
-        }
+		if (datosRegex(sms)) {
+			(await import('../bot/res-bot-datos')).default(client, message.from, clientDB);
+		}
 
-        if (datosRegex(sms)) {
-            client.sendText(message.from, pagoMovil);
-        }
-
-        if (sms.startsWith("abono")) {
-            (await import("../bot/res-bot-abono")).default(
-                sms,
-                client,
-                message,
-                pagoMovil
-            );
-        }
-    });
+		if (sms.startsWith('abono')) {
+			(await import('../bot/res-bot-abono')).default(sms, client, message);
+		}
+	});
 }

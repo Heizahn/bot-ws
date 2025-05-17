@@ -1,0 +1,16 @@
+[install]
+# Instalar dependencias de producción por defecto
+production = false
+
+[test]
+# Configuración para pruebas
+coverage = true
+
+[debug]
+# Configuración para depuración
+sourcemap = true
+
+[build]
+# Configuración para el build
+minify = true
+target = "node" 

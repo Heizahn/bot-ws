@@ -6,7 +6,6 @@ export default async function resBotAbono(
 	sms: string,
 	client: Bot['client'],
 	message: Message,
-	pagoMovil: string,
 ) {
 	const monto = abonoRegex(sms);
 
@@ -19,11 +18,11 @@ export default async function resBotAbono(
 	} else if (monto < 0) {
 		res = 'No se aceptan abonos negativos, Por favor, ingrese un monto valido';
 	} else {
-		const resCon = await fetch(`http://172.17.0.126:8080/convert?amount=${monto}`);
+		const resCon = await fetch(`${process.env.API_BCV}/convert?amount=${monto}`);
 
 		const { conversion } = await resCon.json();
 
-		res = `El monto ${monto} a pagar en bolivares son: ${conversion}Bs\n\n${pagoMovil}`;
+		res = `El monto ${monto} a pagar en bolivares son: ${conversion}Bs`;
 	}
 
 	client.sendText(message.from, res);
